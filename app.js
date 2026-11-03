@@ -23,7 +23,7 @@ function renderHome(){const b=cycleBounds(),t=totals(),pay=paydayCalculation(),l
  $('heroSub').textContent=!pay.ready?'Import and check salary and completed transfers':remaining<0?'You are over your total limit':'After bills, sink transfers and $100 buffer';$('heroProgress').style.width=`${Math.min(100,Math.max(0,t.budget?t.spent/t.budget*100:0))}%`;
  const reviewCount=state.transactions.filter(x=>currentCycle(x)&&x.amount<0&&assignedSplits(x).some(p=>p.category==='Review')).length;$('reviewBanner').classList.toggle('hidden',!reviewCount);$('reviewCount').textContent=`${reviewCount} purchase${reviewCount===1?'':'s'} need review`;
  $('categoryList').innerHTML=Object.entries(limits).map(([cat,limit])=>{const spent=t.sums[cat],left=limit-spent,pct=limit?Math.min(100,spent/limit*100):100;return `<div class="category-wrap"><button class="drag-handle" aria-label="Drag all remaining allowance from ${esc(cat)}" data-drag="${esc(cat)}">⠿</button><button class="category-card" data-category="${esc(cat)}"><div class="category-top"><div class="cat-icon">${icons[cat]||'●'}</div><div class="cat-label"><strong>${esc(cat)}</strong><small>${money(spent)} of ${money(limit)}</small></div><div class="cat-right"><strong class="${left<0?'over':''}">${money(left)}</strong><small>${left<0?'over budget':'remaining'}</small></div></div><div class="track"><div class="${left<0?'overfill':''}" style="width:${pct}%"></div></div></button></div>`}).join('');
- document.querySelectorAll('[data-category]').forEach(n=>n.onclick=()=>openCategory(n.dataset.category));wireTransferDrag();$('transferStatus').textContent=activeCycleOffset===0?'Transfers reset next payday. Cash-flow buffer protected.':'Viewing a past or future fortnight. Transfers are read-only.';renderTransferUndo();renderPaydayButton();}
+ document.querySelectorAll('[data-category]').forEach(n=>n.onclick=()=>openCategory(n.dataset.category));wireTransferDrag();$('transferStatus').textContent=activeCycleOffset===0?'Tap a category to see transactions. Drag its ⠿ handle to move remaining funds. Transfers reset next payday.':'Viewing a past or future fortnight. Transfers are read-only.';renderTransferUndo();renderPaydayButton();}
 function txHtml(t){return `<button class="tx-row" data-tx="${esc(t.id)}"><span class="tx-icon">${icons[t.category]||'◉'}</span><span class="tx-text"><strong>${esc(t.merchant)}</strong><small>${esc(t.category)} · ${esc(t.account)}${t.splits?.length?' · Split':''}</small></span><span class="tx-value">${t.amount<0?'−':''}${money(Math.abs(t.amount))}</span></button>`}
 function renderTransactions(){const q=$('transactionSearch').value.toLowerCase(),filter=$('transactionFilter').value;let list=[...state.transactions].sort((a,b)=>b.date.localeCompare(a.date)||String(b.id).localeCompare(String(a.id))).filter(x=>(filter==='all'||filter==='cycle'&&currentCycle(x)||filter==='Review'&&x.category==='Review')&&(`${x.merchant} ${x.category} ${x.description||''}`).toLowerCase().includes(q));let prev='';$('transactionsList').innerHTML=list.map(t=>{let date=t.date,prefix=date!==prev?`<div class="day-title">${parseDate(date).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})}</div>`:'';prev=date;return prefix+txHtml(t)}).join('')||'<p class="small-note">No transactions found.</p>';document.querySelectorAll('[data-tx]').forEach(n=>n.onclick=()=>openTransaction(n.dataset.tx))}
 function renderBudget(){let sum=Object.values(state.budgets).reduce((a,b)=>a+b,0);$('budgetTotal').textContent=money(paydayCalculation().cap/100);$('paydayInput').value=state.payday;
@@ -81,22 +81,22 @@ function renderTransferUndo(){const records=(state.allowanceTransfers||[]).filte
 
 function wireTransferDrag(){
  document.querySelectorAll('.category-wrap').forEach(wrap=>{
- const handle=wrap.querySelector('[data-drag]'),card=wrap.querySelector('[data-category]');let gesture=null,timer,suppressUntil=0;
- const targetAt=(x,y)=>{const wrap=document.elementFromPoint(x,y)?.closest('.category-wrap');return wrap?.querySelector('[data-category]')};
- const clear=()=>{clearTimeout(timer);gesture=null;card.classList.remove('drag-source');document.querySelectorAll('.drop-target').forEach(n=>n.classList.remove('drop-target'));$('transferStatus').textContent='Transfers reset next payday. Cash-flow buffer protected.';renderTransferUndo();renderPaydayButton()};
- const activate=()=>{if(!gesture)return;gesture.dragging=true;card.classList.add('drag-source');$('transferStatus').textContent='Drop onto a category to move all remaining funds. Undo is available afterwards.'};
- const move=(x,y)=>{if(!gesture)return;gesture.x=x;gesture.y=y;if(!gesture.dragging)return;document.querySelectorAll('.drop-target').forEach(n=>n.classList.remove('drop-target'));const target=targetAt(x,y);if(target&&target!==card)target.classList.add('drop-target');if(y>window.innerHeight-100)window.scrollBy(0,12);else if(y<100)window.scrollBy(0,-12)};
- const finish=(x,y,isTouch=false)=>{if(!gesture)return;const g=gesture,target=targetAt(x,y);if(g.dragging||isTouch)suppressUntil=Date.now()+700;clear();if(g.dragging&&target&&target!==card)dumpRemaining(handle.dataset.drag,target.dataset.category,g.cycle);else if(isTouch&&!g.dragging&&!g.fromHandle)openCategory(card.dataset.category)};
- wrap.addEventListener('touchstart',e=>{if(activeCycleOffset!==0||e.touches.length!==1)return;const t=e.touches[0];gesture={x:t.clientX,y:t.clientY,startX:t.clientX,startY:t.clientY,cycle:cycleBounds(0).start,dragging:false,fromHandle:!!e.target.closest('[data-drag]')};if(gesture.fromHandle)activate();else timer=setTimeout(activate,350)},{passive:true});
- wrap.addEventListener('touchmove',e=>{if(!gesture)return;if(e.touches.length!==1){clear();return}const t=e.touches[0];if(!gesture.dragging&&Math.hypot(t.clientX-gesture.startX,t.clientY-gesture.startY)>10){clear();return}if(gesture.dragging)e.preventDefault();move(t.clientX,t.clientY)},{passive:false});
- wrap.addEventListener('touchend',e=>{if(!gesture)return;const t=e.changedTouches[0];e.preventDefault();finish(t.clientX,t.clientY,true)},{passive:false});
- wrap.addEventListener('touchcancel',clear);wrap.addEventListener('contextmenu',e=>{if(gesture)e.preventDefault()});
- wrap.addEventListener('click',e=>{if(Date.now()<suppressUntil){e.preventDefault();e.stopImmediatePropagation()}},true);
- handle.onpointerdown=e=>{if(e.pointerType==='touch'||activeCycleOffset!==0||e.button!==0)return;gesture={x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,cycle:cycleBounds(0).start,dragging:false};handle.setPointerCapture(e.pointerId)};
- handle.onpointermove=e=>{if(e.pointerType==='touch'||!gesture)return;if(!gesture.dragging&&Math.hypot(e.clientX-gesture.startX,e.clientY-gesture.startY)>8)activate();move(e.clientX,e.clientY)};
+ const handle=wrap.querySelector('[data-drag]'),card=wrap.querySelector('[data-category]');let gesture=null;
+ card.onclick=()=>openCategory(card.dataset.category);
+ const targetAt=(x,y)=>document.elementFromPoint(x,y)?.closest('.category-wrap')?.querySelector('[data-category]');
+ const clear=()=>{gesture=null;card.classList.remove('drag-source');document.querySelectorAll('.drop-target').forEach(n=>n.classList.remove('drop-target'))};
+ const begin=(x,y)=>{if(activeCycleOffset!==0)return;gesture={x,y,cycle:cycleBounds(0).start,dragging:false}};
+ const move=(x,y)=>{if(!gesture)return;if(!gesture.dragging&&Math.hypot(x-gesture.x,y-gesture.y)>8){gesture.dragging=true;card.classList.add('drag-source')}if(!gesture.dragging)return;document.querySelectorAll('.drop-target').forEach(n=>n.classList.remove('drop-target'));const target=targetAt(x,y);if(target&&target!==card)target.classList.add('drop-target');if(y>window.innerHeight-100)window.scrollBy(0,12);else if(y<100)window.scrollBy(0,-12)};
+ const finish=(x,y)=>{if(!gesture)return;const g=gesture,target=targetAt(x,y);clear();if(g.dragging&&target&&target!==card)dumpRemaining(handle.dataset.drag,target.dataset.category,g.cycle)};
+ handle.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;e.preventDefault();const t=e.touches[0];begin(t.clientX,t.clientY)},{passive:false});
+ handle.addEventListener('touchmove',e=>{if(!gesture)return;e.preventDefault();if(e.touches.length!==1){clear();return}const t=e.touches[0];move(t.clientX,t.clientY)},{passive:false});
+ handle.addEventListener('touchend',e=>{if(!gesture)return;e.preventDefault();const t=e.changedTouches[0];finish(t.clientX,t.clientY)},{passive:false});
+ handle.addEventListener('touchcancel',clear);handle.addEventListener('contextmenu',e=>e.preventDefault());
+ handle.onpointerdown=e=>{if(e.pointerType==='touch'||e.button!==0)return;begin(e.clientX,e.clientY);if(gesture)handle.setPointerCapture(e.pointerId)};
+ handle.onpointermove=e=>{if(e.pointerType!=='touch')move(e.clientX,e.clientY)};
  handle.onpointerup=e=>{if(e.pointerType!=='touch')finish(e.clientX,e.clientY)};
- handle.onpointercancel=e=>{if(e.pointerType!=='touch'&&gesture)clear()};
- handle.onclick=e=>{if(e.detail===0)toast('Use Move money to transfer by tapping')};
+ handle.onpointercancel=e=>{if(e.pointerType!=='touch')clear()};
+ handle.onclick=()=>toast('Drag this handle onto another category, or use Move money');
  });
 }
 
