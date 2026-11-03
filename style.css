@@ -2,3 +2,16 @@
 
 
 .transfer-actions{display:flex;gap:12px}.transfer-actions button{flex:1;min-height:44px}.category-wrap{display:flex;gap:4px;align-items:stretch}.category-wrap .category-card{flex:1;min-width:0}.drag-handle{width:36px;border:0;border-radius:12px;background:transparent;color:inherit;font-size:24px;touch-action:none;cursor:grab}.drop-target{outline:3px solid #218778}.drag-handle:focus-visible{outline:3px solid #218778}
+
+/* Keep native selects and form grids inside narrow mobile viewports. */
+.edit-fields,.manual form{grid-template-columns:minmax(0,1fr);min-width:0}
+.edit-fields>label,.manual form>label,.settings-field,#detailContent{min-width:0;max-width:100%}
+.edit-fields input,.edit-fields select,.manual input,.manual select{min-width:0;max-width:100%;font-size:16px}
+.edit-fields select{width:100%;text-overflow:ellipsis;overflow:hidden}
+.detail-sheet{width:100%;max-width:600px;max-height:85vh;max-height:85dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));scroll-padding-bottom:28px}
+.cycle-head{flex-wrap:wrap}
+.cycle-head h1{min-width:0}
+.top .brand{min-width:0}
+.top .icon-btn{flex-shrink:0}
+.cat-label{min-width:0;overflow-wrap:anywhere}
+.cat-right{flex-shrink:0}
