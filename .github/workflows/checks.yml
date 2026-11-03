@@ -13,5 +13,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check app.js && node --check flex.js && node --check sw.js
+      - run: node --check app.js && node --check flex.js && node --check sw.js && node --check payday.js
       - run: node --test tests/*.test.cjs
+
