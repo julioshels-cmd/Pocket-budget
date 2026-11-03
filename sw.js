@@ -1,6 +1,7 @@
-const CACHE='pocket-budget-v8';
-const SHELL=['./','./index.html','./style.css?v=category-tap-2','./payday.js?v=category-tap-2','./flex.js?v=category-tap-2','./app.js?v=category-tap-2','./seed.json','./icon.svg','./manifest.webmanifest'];
+const CACHE='pocket-budget-v9';
+const SHELL=['./','./index.html','./style.css?v=reconciliation-1','./payday.js?v=reconciliation-1','./flex.js?v=reconciliation-1','./app.js?v=reconciliation-1','./seed.json','./icon.svg','./manifest.webmanifest'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('pocket-budget-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;e.respondWith(caches.open(CACHE).then(async cache=>{try{const response=await fetch(e.request);if(response.ok)await cache.put(e.request,response.clone());return response}catch(error){const saved=await cache.match(e.request);if(saved)return saved;throw error}}))});
+
 
