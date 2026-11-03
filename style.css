@@ -17,3 +17,5 @@
 .cat-right{flex-shrink:0}
 
 .category-wrap{-webkit-touch-callout:none}.category-card{-webkit-user-select:none;user-select:none}.drag-source{opacity:.55;outline:2px dashed #218778}.drop-target{outline:3px solid #218778;background:#e9f1e2}.drag-handle{min-width:36px;min-height:44px}
+
+.payday-summary-button{appearance:none;border:0;background:transparent;color:inherit;font:inherit;padding:4px 0;min-height:44px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;text-align:right}.payday-summary-button:focus-visible{outline:2px solid #d1ff77;outline-offset:3px;border-radius:4px}.hero-foot{align-items:center}
