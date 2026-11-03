@@ -5,7 +5,7 @@ function role(t){const text=`${t.merchant||''} ${t.description||''}`.toLowerCase
  if(t.amount>0)return cat==='Salary'||/\b(salary|payroll|wages)\b/.test(text)?'salary':null;
  if(!(t.amount<0))return null;
  if(cat==='Sink Transfer'||/\bsink\b/.test(text))return 'sink';
- if(cat==='Mortgage'||/\b(mortgage|home loan)\b/.test(text))return 'mortgage';
+ if(cat==='Mortgage'||/\bhome\s+offset\b/.test(text))return 'mortgage';
  if(cat==='Bills / Set'||/\bset\b/.test(text))return 'set';
  if(cat==='Personal Allowance'||/\bpersonal allowance\b/.test(text))return 'personal';
  return null;
